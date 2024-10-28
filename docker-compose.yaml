@@ -1,0 +1,32 @@
+version: '1.0'
+services:
+  backend:
+    image: node:18-alpine
+    container_name: tasks
+    env_file:
+      - .env
+    command: npm install && npm start
+    ports:
+      - "3000:3000"
+    depends_on:
+      - postgres_db
+    # Ensure that the application waits for the database to be ready before starting.
+    healthcheck:
+      test: ["CMD-SHELL", "until nc -z postgres_db 5432; do sleep 1; done; echo Database is ready"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres_db:
+    image: postgres:16-alpine
+    container_name: postgres_test
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 2004
+    ports:
+      - "5433:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data  # Updated path to match PostgreSQL's data directory
+
+volumes:
+  db-data:
